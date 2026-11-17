@@ -1,0 +1,517 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>머니 날씨 | 내 용돈의 미래 예보</title>
+<style>
+*{box-sizing:border-box}
+:root{
+ --blue:#5777f6;
+ --ink:#233052;
+ --muted:#7e8ba7;
+ --line:#e5eaf5;
+}
+body{
+ margin:0;
+ font-family:"Pretendard","Malgun Gothic",sans-serif;
+ color:var(--ink);
+ background:linear-gradient(145deg,#e8f1ff,#f6f3ff);
+ min-height:100vh;
+}
+header{
+ background:white;
+ padding:20px 6%;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ box-shadow:0 3px 20px #4b69b010;
+}
+.logo{font-size:23px;font-weight:900;color:var(--blue)}
+.tag{font-size:12px;color:var(--muted)}
+main{max-width:1100px;margin:35px auto;padding:0 18px}
+.hero{text-align:center;margin-bottom:30px}
+.hero h1{font-size:clamp(27px,5vw,42px);margin:10px 0}
+.hero p{color:var(--muted);line-height:1.7}
+.layout{display:grid;grid-template-columns:1fr 1.1fr;gap:22px}
+.card{
+ background:#fff;
+ border-radius:25px;
+ padding:28px;
+ box-shadow:0 12px 35px #637bb016;
+}
+h2{font-size:21px;margin:0 0 24px}
+.field{margin-bottom:21px}
+label{display:block;font-weight:700;margin-bottom:9px;font-size:14px}
+input{
+ width:100%;border:2px solid var(--line);
+ border-radius:13px;padding:15px;
+ font-size:17px;outline:none;
+ color:var(--ink);background:#fbfcff;
+}
+input:focus{border-color:var(--blue)}
+small{display:block;color:var(--muted);margin-top:7px}
+button{
+ border:0;border-radius:13px;padding:15px;
+ font-size:15px;font-weight:800;cursor:pointer;
+ transition:transform .2s,opacity .2s;
+}
+button:hover{transform:translateY(-2px)}
+button:active{transform:scale(.97)}
+.primary{
+ background:linear-gradient(120deg,#5879ff,#8669ec);
+ color:white;width:100%;
+ box-shadow:0 7px 15px #5879ff35;
+}
+.secondary{background:#edf1ff;color:#536de1;width:100%;margin-top:10px}
+.error{color:#df4765;font-size:13px;min-height:18px;margin:12px 0}
+.weather{
+ position:relative;overflow:hidden;
+ border-radius:22px;
+ min-height:275px;
+ display:flex;flex-direction:column;
+ align-items:center;justify-content:center;
+ background:linear-gradient(150deg,#70b8ff,#b6ddff);
+ transition:background 1s ease;
+ text-align:center;color:white;
+}
+.weather.sunny{background:linear-gradient(145deg,#4ba9ff,#8bdcf8)}
+.weather.cloudy{background:linear-gradient(145deg,#8299b9,#c4ccdb)}
+.weather.rainy{background:linear-gradient(145deg,#537cae,#8ba5c7)}
+.weather.stormy{background:linear-gradient(145deg,#252e55,#657095)}
+.weather-icon{
+ font-size:105px;z-index:2;
+ animation:float 3s ease-in-out infinite;
+ filter:drop-shadow(0 10px 15px #0002);
+}
+@keyframes float{
+ 0%,100%{transform:translateY(0)}
+ 50%{transform:translateY(-12px)}
+}
+.weather-title{font-size:28px;font-weight:900;z-index:2}
+.weather-desc{font-size:14px;z-index:2;margin:10px 20px}
+.weather:before{
+ content:"";position:absolute;width:210px;height:210px;
+ background:#ffffff20;border-radius:50%;
+ top:-90px;right:-55px;
+}
+.rain{
+ display:none;position:absolute;inset:0;
+ pointer-events:none;
+ background-image:repeating-linear-gradient(
+ 110deg,transparent 0 27px,#ffffff55 28px 30px,
+ transparent 31px 58px);
+ background-size:100px 100px;
+ animation:rain 1s linear infinite;
+ opacity:.3;
+}
+.rainy .rain,.stormy .rain{display:block}
+@keyframes rain{to{background-position:-100px 100px}}
+.stormy .weather-icon{animation:shake 1.2s infinite}
+@keyframes shake{
+ 0%,100%{transform:translateX(0)}
+ 45%{transform:translateX(-5px)}
+ 55%{transform:translateX(5px)}
+}
+.stats{
+ display:grid;grid-template-columns:1fr 1fr;
+ gap:12px;margin-top:18px;
+}
+.stat{background:#f4f7ff;padding:19px 12px;border-radius:16px;text-align:center}
+.stat span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}
+.stat strong{font-size:clamp(17px,2.4vw,24px);color:#4767e4;word-break:keep-all}
+.notice{
+ margin-top:17px;padding:17px;
+ border-radius:15px;background:#edf8f1;
+ color:#28744c;font-size:14px;line-height:1.7;
+}
+.notice.warn{background:#fff1e8;color:#ad5c26}
+.notice.danger{background:#ffedf0;color:#b63e54}
+.plan{margin-top:22px}
+.plan h3{font-size:17px}
+.range-head{display:flex;justify-content:space-between;gap:10px}
+input[type=range]{padding:0;accent-color:#6478f8;border:0;margin-top:15px}
+.timeline{display:flex;gap:5px;margin-top:14px}
+.bar{flex:1;height:9px;border-radius:10px;background:#dce5f8}
+.bar.good{background:#5ccaa5}
+.bar.bad{background:#f08b93}
+.tip{font-size:13px;color:var(--muted);line-height:1.7}
+.footer{text-align:center;color:var(--muted);font-size:12px;padding:35px}
+.pill{display:inline-block;background:#eef1ff;color:#5b70e3;
+ padding:7px 13px;border-radius:30px;font-size:12px;font-weight:800}
+@media(max-width:760px){
+ .layout{grid-template-columns:1fr}
+ .card{padding:21px}
+ main{margin-top:24px}
+ .weather{min-height:245px}
+ header{padding:17px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">🌤️ 머니 날씨</div>
+ <div class="tag">내 지갑의 미래 예보</div>
+</header>
+
+<main>
+ <section class="hero">
+  <span class="pill">💙 학생을 위한 스마트 용돈 관리</span>
+  <h1>내 용돈의 내일은 맑을까? ☀️</h1>
+  <p>지금 가진 돈과 앞으로 쓸 돈을 입력하면<br>
+  미래의 용돈 날씨를 알려줄게요!</p>
+ </section>
+
+ <div class="layout">
+  <section class="card">
+   <h2>💰 내 용돈 정보</h2>
+
+   <div class="field">
+    <label for="balance">현재 잔액 (원)</label>
+    <input id="balance" type="number" min="0" step="1"
+     placeholder="예: 55000">
+    <small>지금 지갑이나 계좌에 있는 돈</small>
+   </div>
+
+   <div class="field">
+    <label for="payday">다음 용돈 받는 날짜</label>
+    <input id="payday" type="date">
+    <small>용돈을 받기 전까지의 기간을 계산해요</small>
+   </div>
+
+   <div class="field">
+    <label for="expense">그때까지 예상 총지출 (원)</label>
+    <input id="expense" type="number" min="0" step="1"
+     placeholder="예: 30000">
+    <small>교통비, 간식비 등 예상되는 지출 총합</small>
+   </div>
+
+   <div class="field">
+    <label for="todaySpend">오늘 사용했거나 사용할 금액 (원)</label>
+    <input id="todaySpend" type="number" min="0" step="1"
+     placeholder="예: 1000">
+    <small>하루 사용 가능 금액 초과 여부를 확인해요</small>
+   </div>
+
+   <button class="primary" id="analyzeBtn">
+    ✨ 미래 용돈 날씨 확인하기
+   </button>
+   <button class="secondary" id="sampleBtn">
+    🧪 테스트 데이터 입력
+   </button>
+   <button class="secondary" id="resetBtn">
+    ↺ 처음부터 다시하기
+   </button>
+   <div class="error" id="error" role="alert"></div>
+  </section>
+
+  <section class="card">
+   <h2>🌈 나의 용돈 날씨 예보</h2>
+
+   <div class="weather sunny" id="weather" aria-live="polite">
+    <div class="rain"></div>
+    <div class="weather-icon" id="weatherIcon">🌤️</div>
+    <div class="weather-title" id="weatherTitle">예보 대기 중</div>
+    <div class="weather-desc" id="weatherDesc">
+     용돈 정보를 입력하면 미래 날씨가 나타나요!
+    </div>
+   </div>
+
+   <div class="stats">
+    <div class="stat">
+     <span>📅 남은 기간</span>
+     <strong id="days">-</strong>
+    </div>
+    <div class="stat">
+     <span>💵 하루 사용 가능 금액</span>
+     <strong id="daily">-</strong>
+    </div>
+    <div class="stat">
+     <span>🏦 미래 예상 잔액</span>
+     <strong id="future">-</strong>
+    </div>
+    <div class="stat">
+     <span>📊 예상 잔액 비율</span>
+     <strong id="ratio">-</strong>
+    </div>
+   </div>
+
+   <div class="notice" id="notice" role="status">
+    💡 소비 계획을 입력하고 분석해 보세요!
+   </div>
+
+   <div class="plan">
+    <h3>🎮 소비 계획 바꿔보기</h3>
+    <p class="tip">예상 지출을 줄이면 날씨가 어떻게 바뀔까요?</p>
+    <div class="range-head">
+     <label for="slider">예상 지출 조절</label>
+     <b id="sliderValue">-</b>
+    </div>
+    <input id="slider" type="range" min="0" max="100000"
+     step="1000" value="0" disabled>
+    <div class="timeline" id="timeline"></div>
+    <p class="tip" id="advice">
+     예보 후 슬라이더를 움직여 절약 효과를 확인하세요.
+    </p>
+   </div>
+  </section>
+ </div>
+</main>
+
+<div class="footer">
+ 머니 날씨 © 2026 · 오늘의 작은 절약이 내일의 맑은 날씨를 만들어요 🌞
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const money = n => Math.round(n).toLocaleString("ko-KR") + "원";
+
+let state = null;
+let weatherTimer = null;
+
+function localDate(date){
+ return new Date(date.getFullYear(),date.getMonth(),date.getDate());
+}
+
+function dateString(date){
+ const y=date.getFullYear();
+ const m=String(date.getMonth()+1).padStart(2,"0");
+ const d=String(date.getDate()).padStart(2,"0");
+ return `${y}-${m}-${d}`;
+}
+
+function daysUntil(value){
+ const today=localDate(new Date());
+ const [y,m,d]=value.split("-").map(Number);
+ const target=new Date(y,m-1,d);
+ if(target.getFullYear()!==y ||
+    target.getMonth()!==m-1 ||
+    target.getDate()!==d) return NaN;
+ return Math.round((target-today)/86400000);
+}
+
+function classify(balance,future){
+ if(future<0) return "stormy";
+ if(future===0) return "rainy";
+ if(balance===0) return "rainy";
+ const r=future/balance;
+ if(r>=0.5) return "sunny";
+ if(r>=0.2) return "cloudy";
+ return "rainy";
+}
+
+const weatherData={
+ sunny:{
+  icon:"☀️",title:"맑음 · 여유로운 지갑",
+  desc:"계획대로라면 용돈이 넉넉하게 남겠어요!"
+ },
+ cloudy:{
+  icon:"☁️",title:"흐림 · 절약이 필요해",
+  desc:"조금만 더 아끼면 햇살이 찾아올 거예요."
+ },
+ rainy:{
+  icon:"🌧️",title:"비 · 잔액 주의보",
+  desc:"남는 돈이 적어요. 지출을 줄여보세요!"
+ },
+ stormy:{
+  icon:"⛈️",title:"천둥 · 용돈 부족 경보",
+  desc:"다음 용돈을 받기 전에 돈이 부족할 수 있어요!"
+ }
+};
+
+function setWeather(type,animate=true){
+ const box=$("weather");
+ const data=weatherData[type];
+
+ if(weatherTimer) clearTimeout(weatherTimer);
+
+ if(animate){
+  box.className="weather cloudy";
+  $("weatherIcon").textContent="☁️";
+  $("weatherTitle").textContent="미래 날씨 분석 중...";
+  $("weatherDesc").textContent="지출과 남은 기간을 계산하고 있어요.";
+  weatherTimer=setTimeout(()=>{
+   applyWeather(type,data);
+   weatherTimer=null;
+  },550);
+ }else{
+  applyWeather(type,data);
+ }
+}
+
+function applyWeather(type,data){
+ $("weather").className="weather "+type;
+ $("weatherIcon").textContent=data.icon;
+ $("weatherTitle").textContent=data.title;
+ $("weatherDesc").textContent=data.desc;
+}
+
+function getInput(){
+ const balanceText=$("balance").value.trim();
+ const expenseText=$("expense").value.trim();
+ const todayText=$("todaySpend").value.trim();
+ const payday=$("payday").value;
+
+ if(balanceText==="" || expenseText==="" || !payday){
+  throw Error("현재 잔액, 날짜, 예상 지출을 모두 입력해 주세요.");
+ }
+
+ const balance=Number(balanceText);
+ const expense=Number(expenseText);
+ const todaySpend=todayText===""?0:Number(todayText);
+ const values=[balance,expense,todaySpend];
+
+ if(values.some(n=>!Number.isSafeInteger(n)||n<0)){
+  throw Error("금액은 0 이상의 올바른 정수로 입력해 주세요.");
+ }
+ if(values.some(n=>n>1000000000)){
+  throw Error("금액은 10억 원 이하로 입력해 주세요.");
+ }
+
+ const days=daysUntil(payday);
+ if(!Number.isFinite(days)||days<=0){
+  throw Error("다음 용돈 날짜는 내일 이후로 선택해 주세요.");
+ }
+ if(days>365){
+  throw Error("다음 용돈 날짜는 1년 이내로 선택해 주세요.");
+ }
+ return {balance,expense,todaySpend,days};
+}
+
+function analyze(){
+ try{
+  const data=getInput();
+  $("error").textContent="";
+  state=data;
+  $("slider").disabled=false;
+  $("slider").max=String(Math.max(
+   10000,Math.ceil(data.balance*2/1000)*1000,
+   Math.ceil(data.expense/1000)*1000
+  ));
+  $("slider").value=String(data.expense);
+  render(data.expense);
+ }catch(e){
+  $("error").textContent=e.message;
+ }
+}
+
+function render(expense){
+ if(!state)return;
+
+ const {balance,todaySpend,days}=state;
+ const future=balance-expense;
+ const daily=Math.max(0,future/days);
+ const ratio=balance>0?(future/balance)*100:
+  (future<0?-100:0);
+ const type=classify(balance,future);
+
+ $("days").textContent=days+"일";
+ $("daily").textContent=money(Math.floor(daily));
+ $("future").textContent=money(future);
+ $("ratio").textContent=Math.round(ratio)+"%";
+ $("sliderValue").textContent=money(expense);
+
+ setWeather(type);
+
+ let message="";
+ let severity="";
+
+ if(future<0){
+  severity="danger";
+  message="🚨 예상 지출이 현재 잔액보다 "+
+   money(-future)+" 많아요. 지출 계획을 줄여야 해요.";
+ }else if(todaySpend>daily){
+  severity="warn";
+  message="⚠️ 오늘 지출이 하루 사용 가능 금액을 "+
+   money(todaySpend-daily)+" 초과했어요!";
+ }else if(type==="rainy"){
+  severity="warn";
+  message="🌧️ 다음 용돈까지 잔액이 빠듯해요. 불필요한 소비를 줄여보세요.";
+ }else if(type==="cloudy"){
+  severity="warn";
+  message="☁️ 조금 더 절약하면 맑은 용돈 날씨가 될 수 있어요.";
+ }else{
+  message="🌞 좋은 계획이에요! 지금의 소비 계획을 유지해 보세요.";
+ }
+
+ $("notice").className="notice "+severity;
+ $("notice").textContent=message;
+
+ const target=Math.ceil(balance*0.5);
+ const saving=Math.max(0,expense-(balance-target));
+
+ if(future<0){
+  $("advice").textContent=
+   "💡 최소 "+money(-future)+"의 지출을 줄이면 적자를 피할 수 있어요.";
+ }else if(type!=="sunny"){
+  $("advice").textContent=
+   "💡 예상 지출을 "+money(saving)+
+   " 줄이면 맑음 날씨를 기대할 수 있어요.";
+ }else{
+  $("advice").textContent=
+   "✨ 예상 잔액이 현재 잔액의 50% 이상이에요. 훌륭해요!";
+ }
+
+ const timeline=$("timeline");
+ timeline.innerHTML="";
+ const spentRatio=balance>0?expense/balance:(expense>0?2:0);
+ for(let i=0;i<15;i++){
+  const bar=document.createElement("div");
+  bar.className="bar";
+  if(i/15<Math.min(1,spentRatio)){
+   bar.classList.add(spentRatio>0.8?"bad":"good");
+  }
+  timeline.appendChild(bar);
+ }
+}
+
+$("analyzeBtn").addEventListener("click",analyze);
+
+$("slider").addEventListener("input",()=>{
+ if(!state)return;
+ const expense=Number($("slider").value);
+ $("expense").value=expense;
+ render(expense);
+});
+
+$("sampleBtn").addEventListener("click",()=>{
+ const date=new Date();
+ date.setDate(date.getDate()+10);
+ $("balance").value=55000;
+ $("payday").value=dateString(date);
+ $("expense").value=30000;
+ $("todaySpend").value=1000;
+ analyze();
+});
+
+$("resetBtn").addEventListener("click",()=>{
+ if(weatherTimer)clearTimeout(weatherTimer);
+ weatherTimer=null;
+ state=null;
+ ["balance","expense","todaySpend"].forEach(id=>$(id).value="");
+ $("payday").value="";
+ $("slider").disabled=true;
+ $("slider").value=0;
+ $("sliderValue").textContent="-";
+ $("error").textContent="";
+ ["days","daily","future","ratio"].forEach(id=>$(id).textContent="-");
+ $("notice").className="notice";
+ $("notice").textContent="💡 소비 계획을 입력하고 분석해 보세요!";
+ $("advice").textContent="예보 후 슬라이더를 움직여 절약 효과를 확인하세요.";
+ $("timeline").innerHTML="";
+ applyWeather("sunny",{
+  icon:"🌤️",
+  title:"예보 대기 중",
+  desc:"용돈 정보를 입력하면 미래 날씨가 나타나요!"
+ });
+});
+
+$("payday").min=dateString(new Date());
+</script>
+</body>
+</html>
